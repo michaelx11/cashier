@@ -1,0 +1,4 @@
+{
+  "test_dir" : "test1",
+  "test_cmds" : ["mv a.txt c.txt"]
+}

@@ -1,0 +1,4 @@
+{
+  "test_dir" : "deepSingleTree",
+  "test_cmds" : ["mv a/b/c/hi.txt a/b/c/yo.txt"]
+}
