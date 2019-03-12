@@ -25,7 +25,7 @@ def loadTestCase(testFilePath):
 def executeTest(testConfig):
     name = testConfig['name']
     testDir = testConfig['test_dir']
-    print 'Running test: ' + name
+    print('Running test: ' + name)
     # Setup
     os.system('mkdir scratch')
 
@@ -48,9 +48,9 @@ def executeTest(testConfig):
     judgeHash = invokeCashier(judgeCopyPath)
 
     if testHash != judgeHash:
-        print '\nFailure!\nexpected: %s\ngot: %s\n' % (judgeHash, testHash)
+        print('\nFailure!\nexpected: %s\ngot: %s\n' % (judgeHash, testHash))
     else:
-        print '\nSuccess!\nexp: %s\ngot: %s\n' % (judgeHash, testHash)
+        print('\nSuccess!\nexp: %s\ngot: %s\n' % (judgeHash, testHash))
     # Teardown
     os.system('rm -rf scratch')
 
@@ -64,4 +64,4 @@ for testFile in os.listdir('test_cases'):
     if testConfig:
         executeTest(testConfig)
     else:
-        print 'Error loading test: %s' % testFile
+        print('Error loading test: %s' % testFile)

@@ -58,12 +58,12 @@ import time
 ################################################################################
 
 if len(sys.argv) < 2:
-    print 'Usage: cashier.py path_to_root_dir [clean]'
+    print('Usage: cashier.py path_to_root_dir [clean]')
     sys.exit(0)
 
 rootDir = sys.argv[1]
 if not os.path.exists(rootDir):
-    print 'Error: %s does not exist.' % rootDir
+    print('Error: %s does not exist.' % rootDir)
     sys.exit(0)
 
 shouldClean = False
@@ -122,8 +122,8 @@ class CashFile:
         m = hashlib.sha1()
         mnamehash = hashlib.sha1()
         for cashFile in listCashFiles:
-            m.update(cashFile.getHash())
-            mnamehash.update(cashFile.getNameHash())
+            m.update(cashFile.getHash().encode('utf-8'))
+            mnamehash.update(cashFile.getNameHash().encode('utf-8'))
             maxTime = max(maxTime, cashFile.getMTime())
         combinedCashFile.stats['mtime'] = maxTime
         combinedCashFile.stats['hash'] = m.hexdigest()
@@ -143,8 +143,8 @@ class CashFile:
     def hashNames(listCashFiles):
         m = hashlib.sha1()
         for cashFile in listCashFiles:
-            m.update(os.path.basename(cashFile.dirName).lower()) # file or dir name
-            m.update(cashFile.getNameHash()) # subdir name hash
+            m.update(os.path.basename(cashFile.dirName).lower().encode('utf-8')) # file or dir name
+            m.update(cashFile.getNameHash().encode('utf-8')) # subdir name hash
         return m.hexdigest()
 
 currentCashFile = None
@@ -211,5 +211,5 @@ for dirName, subdirList, fileList in os.walk(rootDir, topdown=False):
     currentCashFile.writeCashFile()
 
 # Final combined hash(namehash + contents hash)
-print hashlib.sha1(currentCashFile.getNameHash() +
-                   currentCashFile.getHash()).hexdigest()
+print(hashlib.sha1((currentCashFile.getNameHash() +
+                   currentCashFile.getHash()).encode('utf-8')).hexdigest())
