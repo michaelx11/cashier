@@ -81,11 +81,15 @@ class CashFile:
         self.stats['hash'] = hash
         self.stats['mtime'] = mtime
         self.stats['namehash'] = namehash
+        self.stats['dirname'] = dirName
 
     def writeCashFile(self):
         cash_path = os.path.join(self.dirName, CASH_FILE_NAME)
         with open(cash_path, 'w') as f:
             f.write(json.dumps(self.stats) + '\n')
+
+    def getCashFileDump(self):
+        return json.dumps(self.stats)
 
     def setHash(self, hashValue):
         self.stats['hash'] = hashValue
@@ -104,6 +108,20 @@ class CashFile:
 
     def getNameHash(self):
         return self.stats['namehash']
+
+    def clearSubData(self):
+        if 'subdirs' in self.stats:
+            del self.stats['subdirs']
+        if 'subfiles' in self.stats:
+            del self.stats['subfiles']
+
+    def setSubDirs(self, subdirs):
+        subdirs.sort(key=lambda x: x['dirname'])
+        self.stats['subdirs'] = subdirs
+
+    def setSubFiles(self, subfiles):
+        subfiles.sort(key=lambda x: x['dirname'])
+        self.stats['subfiles'] = subfiles
 
     @staticmethod
     def loadCashFile(dirName):
@@ -157,7 +175,7 @@ for dirName, subdirList, fileList in os.walk(rootDir, topdown=False):
     currentCashFile = CashFile.loadCashFile(dirName)
     filteredSubDirList = sorted(filter(lambda x: not x.startswith('.'),
                                        subdirList))
-    filteredFileList = sorted(filter(lambda x: not x.startswith('.'), fileList))
+    filteredFileList = sorted(filter(lambda x: not x.startswith('.cash_file'), fileList))
     if not currentCashFile:
         currentCashFile = CashFile(dirName, "", 0)
 
@@ -168,6 +186,9 @@ for dirName, subdirList, fileList in os.walk(rootDir, topdown=False):
         if os.path.islink(subdirPath):
             continue
         tempCashFile = CashFile.loadCashFile(subdirPath)
+        # We don't need the subdata for any deeper levels
+        # TODO: perhaps make this a flag
+#        tempCashFile.clearSubData()
         if tempCashFile:
             cashDirList.append(tempCashFile)
         else:
@@ -207,6 +228,9 @@ for dirName, subdirList, fileList in os.walk(rootDir, topdown=False):
 
     currentCashFile = CashFile.combineCashFiles(dirName, totalCashList)
     # Manually set namehash for now
+    # Set subdata here
+    currentCashFile.setSubDirs(list(map(lambda x: json.loads(x.getCashFileDump()), cashDirList)))
+    currentCashFile.setSubFiles(list(map(lambda x: json.loads(x.getCashFileDump()), cashFileList)))
     currentCashFile.setNameHash(newNameHash)
     currentCashFile.writeCashFile()
 
