@@ -2,13 +2,19 @@
 import json
 import sys
 
+verbose = False
 
-def compare_recur(co1, co2):
+def print_verbose(s):
+    if verbose:
+        print(s)
+
+def compare_recur(co1, co2, is_dir=False):
     # Is there even a difference?
     if co1['hash'] == co2['hash'] and co1['namehash'] == co2['namehash']:
         # No need to check!
         return
-    print('= {} differs =\n1:{}-{}\n2:{}-{}'.format(
+    print('{}{}'.format(co1['dirname'], '/' if is_dir else ''))
+    print_verbose('= {} differs =\n1:{}-{}\n2:{}-{}'.format(
         co1['dirname'],
         co1['hash'],
         co1['namehash'],
@@ -25,13 +31,15 @@ def compare_recur(co1, co2):
         for sf2 in co2.get(keyname, []):
             co2_sf_dict[sf2['dirname']] = sf2
         for common_dirname in co1_sf_dict.keys() & co2_sf_dict.keys():
-            compare_recur(co1_sf_dict[common_dirname], co2_sf_dict[common_dirname])
+            compare_recur(co1_sf_dict[common_dirname], co2_sf_dict[common_dirname], is_dir=keyname == 'subdirs')
         for co1_dir in co1_sf_dict.keys() - co2_sf_dict.keys():
-            print('= {} differs ='.format(co1_dir))
-            print('{}: {} in 1 but not 2'.format(keyname, co1_dir))
+            print('>>>! {}{}'.format(co1_dir, '/' if keyname == 'subdirs' else ''))
+            print_verbose('= {} differs ='.format(co1_dir))
+            print_verbose('{}: {} in 1 but not 2'.format(keyname, co1_dir))
         for co2_dir in co2_sf_dict.keys() - co1_sf_dict.keys():
-            print('= {} differs ='.format(co2_dir))
-            print('{}: {} in 2 but not 1'.format(keyname, co2_dir))
+            print('!<<< {}{}'.format(co2_dir, '/' if keyname == 'subdirs' else ''))
+            print_verbose('= {} differs ='.format(co2_dir))
+            print_verbose('{}: {} in 2 but not 1'.format(keyname, co2_dir))
 
 if __name__ == '__main__':
     if len(sys.argv) < 3:
@@ -40,4 +48,4 @@ if __name__ == '__main__':
 
     with open(sys.argv[1], 'r') as cash1:
         with open(sys.argv[2], 'r') as cash2:
-            compare_recur(json.load(cash1), json.load(cash2))
+            compare_recur(json.load(cash1), json.load(cash2), is_dir=True)
