@@ -86,7 +86,7 @@ class CashFile:
     def writeCashFile(self):
         cash_path = os.path.join(self.dirName, CASH_FILE_NAME)
         with open(cash_path, 'w') as f:
-            f.write(json.dumps(self.stats) + '\n')
+            json.dump(self.stats, f)
 
     def getCashFileDump(self):
         return json.dumps(self.stats)
@@ -130,7 +130,7 @@ class CashFile:
         if not os.path.isfile(cash_path):
             return None
         with open(cash_path, 'r') as f:
-            cashFile.stats = json.loads(f.read())
+            cashFile.stats = json.load(f)
         return cashFile
 
     @staticmethod
@@ -140,8 +140,8 @@ class CashFile:
         m = hashlib.sha1()
         mnamehash = hashlib.sha1()
         for cashFile in listCashFiles:
-            m.update(cashFile.getHash().encode('utf-8'))
-            mnamehash.update(cashFile.getNameHash().encode('utf-8'))
+            m.update(cashFile.getHash().decode('utf-8').encode('utf-8'))
+            mnamehash.update(cashFile.getNameHash().decode('utf-8').encode('utf-8'))
             maxTime = max(maxTime, cashFile.getMTime())
         combinedCashFile.stats['mtime'] = maxTime
         combinedCashFile.stats['hash'] = m.hexdigest()
@@ -161,8 +161,8 @@ class CashFile:
     def hashNames(listCashFiles):
         m = hashlib.sha1()
         for cashFile in listCashFiles:
-            m.update(os.path.basename(cashFile.dirName).lower().encode('utf-8')) # file or dir name
-            m.update(cashFile.getNameHash().encode('utf-8')) # subdir name hash
+            m.update(os.path.basename(cashFile.dirName).decode('utf-8').lower().encode('utf-8')) # file or dir name
+            m.update(cashFile.getNameHash().decode('utf-8').encode('utf-8')) # subdir name hash
         return m.hexdigest()
 
 currentCashFile = None
@@ -236,4 +236,4 @@ for dirName, subdirList, fileList in os.walk(rootDir, topdown=False):
 
 # Final combined hash(namehash + contents hash)
 print(hashlib.sha1((currentCashFile.getNameHash() +
-                   currentCashFile.getHash()).encode('utf-8')).hexdigest())
+                   currentCashFile.getHash()).decode('utf-8').encode('utf-8')).hexdigest())
